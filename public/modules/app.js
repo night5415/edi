@@ -1,8 +1,11 @@
+import { DataBase } from "./db.js";
 const SEARCH_VALUE = "data-search";
-let timeout;
+let db;
 
-export function loaded() {
+export function init() {
   document.addEventListener("dragover", (event) => event.preventDefault());
+  db = new DataBase("test", 1);
+  db.init();
 }
 
 export function attach() {
@@ -49,6 +52,29 @@ export function dialogSetup() {
   });
 }
 
+export async function getData() {
+  const container = document.getElementById("test");
+
+  const list = await db.getAll("edi");
+
+  const rows = list.map((l) => {
+    let row = document.createElement("edi-row");
+    row.setAttribute("id", l.id);
+    row.setAttribute("file", l.file);
+    row.setAttribute("created", l.created);
+    return row;
+  });
+
+  rows.forEach((row) => container.appendChild(row));
+
+  container.addEventListener("onDelete", (e) => {
+    const { detail } = e,
+      id = parseInt(detail.id);
+
+    db.delete(id, "edi");
+  });
+}
+
 const highlightText = (dialog, value) => {
   if (!Boolean(value)) {
     return;
@@ -77,10 +103,19 @@ const clearHighlightedText = (dialog) => {
 
 const fileReader = (file) => {
   const reader = new FileReader();
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     const output = document.getElementById("edi-list"),
       file = e.target.result,
       lines = file.split("~");
+
+    await db.insert(
+      {
+        id: Date.now(),
+        file: file,
+        created: new Date(),
+      },
+      "edi"
+    );
 
     //clear current file
     const previous = Array.from(output.children);

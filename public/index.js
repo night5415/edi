@@ -1,5 +1,8 @@
-import { attach, loaded, dialogSetup } from "./modules/util.js";
+import { attach, init, dialogSetup, getData } from "./modules/app.js";
 
-loaded();
+init();
 attach();
 dialogSetup();
+setTimeout(() => {
+  getData();
+}, 1000);
