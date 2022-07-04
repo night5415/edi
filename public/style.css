@@ -3,8 +3,8 @@
   --light-blue: #1e90ff;
   --white: #ffffff;
   --black: #000000;
-  --background: #37373d;
-  --gray: #3c3c3c;
+  --background: #1b1b1b;
+  --gray: #4e4e4e;
   --orange: rgb(236, 174, 41);
 }
 
@@ -26,8 +26,8 @@ body {
   color: var(--white);
   text-align: center;
   padding: 100px 0;
-  width: 300px;
-  margin: 0 auto;
+
+  margin: 0 20px;
 }
 
 .footer {
@@ -131,5 +131,18 @@ div[data-close]:hover {
   }
   to {
     background-color: var(--orange);
+  }
+}
+
+.fade-out {
+  animation: fadeOut 200ms normal forwards ease-in-out;
+}
+
+@keyframes fadeOut {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
   }
 }

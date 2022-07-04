@@ -70,6 +70,27 @@ export class DataBase {
     });
   };
 
+  getById = function (id, store) {
+    const transaction = this.db.transaction(store, "readonly"),
+      table = transaction.objectStore(store);
+
+    return new Promise((res, req) => {
+      const request = table.get(id);
+      request.onsuccess = function () {
+        res(request.result);
+        console.log(
+          `Single record with id: ${id} from store: ${store}`,
+          request.result
+        );
+      };
+
+      request.onerror = function () {
+        req(request.error);
+        console.error("Error", request.error);
+      };
+    });
+  };
+
   getAll = function (store) {
     const transaction = this.db.transaction(store, "readonly"),
       table = transaction.objectStore(store);

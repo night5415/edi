@@ -1,6 +1,6 @@
 import { DataBase } from "./db.js";
 const SEARCH_VALUE = "data-search";
-let db;
+let timeout, db;
 
 export function init() {
   document.addEventListener("dragover", (event) => event.preventDefault());
@@ -53,25 +53,33 @@ export function dialogSetup() {
 }
 
 export async function getData() {
-  const container = document.getElementById("test");
+  const container = document.getElementById("test"),
+    list = await db.getAll("edi");
 
-  const list = await db.getAll("edi");
+  container.append(
+    ...list.map(({ id, file, created }) => {
+      const row = document.createElement("edi-row");
+      row.setAttribute("id", id);
+      row.setAttribute("file", file);
+      row.setAttribute("created", created);
+      return row;
+    })
+  );
 
-  const rows = list.map((l) => {
-    let row = document.createElement("edi-row");
-    row.setAttribute("id", l.id);
-    row.setAttribute("file", l.file);
-    row.setAttribute("created", l.created);
-    return row;
+  container.addEventListener("onDelete", async (e) => {
+    const { detail, target } = e,
+      id = parseInt(detail.id),
+      deleted = await db.delete(id, "edi");
+
+    target.deleteRow(deleted);
   });
 
-  rows.forEach((row) => container.appendChild(row));
-
-  container.addEventListener("onDelete", (e) => {
+  container.addEventListener("onRowClick", async (e) => {
     const { detail } = e,
       id = parseInt(detail.id);
 
-    db.delete(id, "edi");
+    const { file } = await db.getById(id, "edi");
+    showDialog(file);
   });
 }
 
@@ -103,31 +111,42 @@ const clearHighlightedText = (dialog) => {
 
 const fileReader = (file) => {
   const reader = new FileReader();
-  reader.onload = async (e) => {
-    const output = document.getElementById("edi-list"),
-      file = e.target.result,
-      lines = file.split("~");
+  reader.onload = async ({ target }) => {
+    const file = target.result;
 
-    await db.insert(
-      {
-        id: Date.now(),
-        file: file,
-        created: new Date(),
-      },
-      "edi"
-    );
+    const f = {
+      id: Date.now(),
+      file: file,
+      created: new Date(),
+    };
 
-    //clear current file
-    const previous = Array.from(output.children);
-    previous.forEach((children) => children.remove());
-    //print new file
-    lines.forEach((line) => printOutput(line, output));
-    //open modal
-    const [dialog] = document.getElementsByTagName("dialog");
-    dialog?.showModal();
+    await db.insert(f, "edi");
+
+    const container = document.getElementById("test"),
+      row = document.createElement("edi-row");
+
+    row.setAttribute("id", f.id);
+    row.setAttribute("file", f.file);
+    row.setAttribute("created", f.created);
+    container.append(row);
+
+    showDialog(file);
   };
   reader.onerror = (e) => console.error(e);
   reader.readAsText(file);
+};
+
+const showDialog = (file) => {
+  const output = document.getElementById("edi-list"),
+    lines = file.split("~");
+  //clear current file
+  const previous = Array.from(output.children);
+  previous.forEach((children) => children.remove());
+  //print new file
+  lines.forEach((line) => printOutput(line, output));
+  //open modal
+  const [dialog] = document.getElementsByTagName("dialog");
+  dialog?.showModal();
 };
 
 const printOutput = (line, el) => {

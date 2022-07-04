@@ -5,4 +5,4 @@ attach();
 dialogSetup();
 setTimeout(() => {
   getData();
-}, 1000);
+}, 250);
