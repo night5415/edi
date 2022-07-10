@@ -93,7 +93,7 @@ const highlightText = (dialog, value) => {
 
   lis.forEach((li) => {
     li.setAttribute(SEARCH_VALUE, true);
-    li.innerHTML = li.innerHTML.replace(
+    li.innerHTML = li.innerHTML.replaceAll(
       nValue,
       `<span class="highlight">${nValue}</span>`
     );
