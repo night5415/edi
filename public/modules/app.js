@@ -1,10 +1,12 @@
 import { DataBase } from "./db.js";
-const SEARCH_VALUE = "data-search";
+const SEARCH_VALUE = "data-search",
+  container = document.getElementById("previous-files");
+
 let timeout, db;
 
 export function init() {
   document.addEventListener("dragover", (event) => event.preventDefault());
-  db = new DataBase("test", 1);
+  db = new DataBase("edition-1", 1);
   db.init();
 }
 
@@ -53,8 +55,7 @@ export function dialogSetup() {
 }
 
 export async function getData() {
-  const container = document.getElementById("test"),
-    list = await db.getAll("edi");
+  const list = await db.getAll("edi");
 
   container.append(
     ...list.map(({ id, file, created }) => {
@@ -122,8 +123,7 @@ const fileReader = (file) => {
 
     await db.insert(f, "edi");
 
-    const container = document.getElementById("test"),
-      row = document.createElement("edi-row");
+    const row = document.createElement("edi-row");
 
     row.setAttribute("id", f.id);
     row.setAttribute("file", f.file);
