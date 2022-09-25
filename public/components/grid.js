@@ -13,7 +13,7 @@ const getTemplate = (id, file, created) => {
           border-radius: 6px;
           padding: 5px;
           box-shadow: 0 0 10px var(--black);
-          transition: all 200ms;
+          transition: all 300ms;
         }
         .fade {
           height: 0;
@@ -39,13 +39,16 @@ const getTemplate = (id, file, created) => {
           cursor: pointer;
           border-radius: 6px;
           border: 1px solid var(--white);
-          background-color: transparent;
+          background-color: var(--background);
           color: var(--white, #000);
-          transition: all 200ms;
+          transition: all 150ms;
           margin: 0 3px;
         }
         .btn:hover{
-          box-shadow: 0px 2px 10px var(--black, #000);
+
+
+          box-shadow: 5px 5px 5px var(--black, #000);
+          transform: scale(1.05);
         }
         .action {
           display: flex
@@ -72,8 +75,9 @@ class EdiRow extends HTMLElement {
   }
 
   static get observedAttributes() {
-    return [""];
+    return ["name"];
   }
+
   deleteRow = function (id) {
     const row = this._shadowRoot.querySelector(`[data-row="${id}"]`);
     if (!row) {

@@ -1,4 +1,6 @@
-const f = document.createElement("template");
+const SEARCH_VALUE = "data-search",
+  f = document.createElement("template");
+
 f.innerHTML = `
 <style>
 .drop-zone {
@@ -135,7 +137,7 @@ div[data-close]:hover {
     <div class="drop-zone" data-feature="drop" data-output="edi-list">
       Drop EDI
     </div>
-    <dialog>
+    <dialog id="dialog">
       <div data-close>X</div>
       <article>
         <ul id="edi-list" contenteditable></ul>
@@ -151,11 +153,90 @@ class Files extends HTMLElement {
   constructor() {
     super();
     this._shadowRoot = this.attachShadow({ mode: "open" });
+    this.timeout;
+  }
+
+  printOutput = (line, el) => {
+    const li = document.createElement("li");
+    li.setAttribute("data-value", line?.toUpperCase());
+    li.innerText = line;
+    el.appendChild(li);
+  };
+
+  get dialog() {
+    return this._shadowRoot.getElementById(`dialog`);
+  }
+
+  get closeButton() {
+    return this._shadowRoot.querySelector("[data-close]");
+  }
+
+  get searchBox() {
+    return this._shadowRoot.querySelector("[data-search]");
   }
 
   static get observedAttributes() {
     return [""];
   }
+
+  highlightText = (value) => {
+    if (!Boolean(value)) {
+      return;
+    }
+
+    const nValue = value.toUpperCase(),
+      lis = [...this.dialog.querySelectorAll(`li[data-value*="${nValue}"]`)];
+
+    lis.forEach((li) => {
+      li.setAttribute(SEARCH_VALUE, true);
+      li.innerHTML = li.innerHTML.replaceAll(
+        nValue,
+        `<span class="highlight">${nValue}</span>`
+      );
+    });
+  };
+
+  clearHighlightedText = () => {
+    const old = [...this.dialog.querySelectorAll(`li[${SEARCH_VALUE}]`)];
+
+    old.forEach((el) => {
+      el.innerHTML = el.getAttribute("data-value");
+      el.removeAttribute(SEARCH_VALUE);
+    });
+  };
+
+  dialogSetup() {
+    const clickOutside = (e) => {
+        if (e.target !== this.dialog) {
+          return;
+        }
+
+        this.dialog.close();
+      },
+      searchForText = () => {
+        clearTimeout(this.timeout);
+        this.timeout = setTimeout(() => {
+          this.clearHighlightedText();
+          this.highlightText(this.searchBox.value);
+        }, 200);
+      };
+
+    this.dialog.addEventListener("click", clickOutside);
+    this.closeButton.addEventListener("click", () => this.dialog.close());
+    this.searchBox.addEventListener("keydown", searchForText);
+  }
+
+  openDialog = function (file) {
+    const dialog = this.dialog,
+      output = this._shadowRoot.getElementById("edi-list"),
+      lines = file.split("~"),
+      previous = Array.from(output.children);
+
+    previous.forEach((children) => children.remove());
+
+    lines.forEach((line) => this.printOutput(line, output));
+    dialog.showModal();
+  };
 
   connectedCallback() {
     const { _shadowRoot: dom } = this;
@@ -163,6 +244,8 @@ class Files extends HTMLElement {
 
     const dropZones = dom.querySelectorAll(`[data-feature="drop"]`),
       context = dom.querySelector(`[data-role="context"]`);
+
+    this.dialogSetup();
 
     context.addEventListener("click", async () => {
       const userContent = await navigator.clipboard.readText();

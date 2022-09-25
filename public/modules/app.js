@@ -1,6 +1,5 @@
 import { DataBase } from "./db.js";
-const SEARCH_VALUE = "data-search",
-  container = document.getElementById("previous-files"),
+const container = document.getElementById("previous-files"),
   app = document.getElementById("app");
 
 let timeout, db;
@@ -18,33 +17,6 @@ export function init() {
       return;
     }
     files.forEach(fileReader);
-  });
-}
-
-export function dialogSetup() {
-  const dialogs = Array.from(document.getElementsByTagName("dialog"));
-
-  dialogs.forEach((dialog) => {
-    const close = dialog.querySelector("[data-close]"),
-      search = dialog.querySelector("[data-search]"),
-      clickOutside = (e) => {
-        if (e.target !== dialog) {
-          return;
-        }
-
-        dialog.close();
-      },
-      searchForText = ({ target }) => {
-        clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          clearHighlightedText(dialog);
-          highlightText(dialog, target.value);
-        }, 200);
-      };
-
-    dialog?.addEventListener("click", clickOutside);
-    close?.addEventListener("click", () => dialog.close());
-    search?.addEventListener("keydown", searchForText);
   });
 }
 
@@ -78,32 +50,6 @@ export async function getData() {
   });
 }
 
-const highlightText = (dialog, value) => {
-  if (!Boolean(value)) {
-    return;
-  }
-
-  const nValue = value.toUpperCase(),
-    lis = [...dialog.querySelectorAll(`li[data-value*="${nValue}"]`)];
-
-  lis.forEach((li) => {
-    li.setAttribute(SEARCH_VALUE, true);
-    li.innerHTML = li.innerHTML.replaceAll(
-      nValue,
-      `<span class="highlight">${nValue}</span>`
-    );
-  });
-};
-
-const clearHighlightedText = (dialog) => {
-  const old = [...dialog.querySelectorAll(`li[${SEARCH_VALUE}]`)];
-
-  old.forEach((el) => {
-    el.innerHTML = el.getAttribute("data-value");
-    el.removeAttribute(SEARCH_VALUE);
-  });
-};
-
 const fileReader = (file) => {
   const reader = new FileReader();
   reader.onload = async ({ target }) => {
@@ -129,21 +75,6 @@ const fileReader = (file) => {
 };
 
 const showDialog = (file) => {
-  const output = document.getElementById("edi-list"),
-    lines = file.split("~");
-  //clear current file
-  const previous = Array.from(output.children);
-  previous.forEach((children) => children.remove());
-  //print new file
-  lines.forEach((line) => printOutput(line, output));
-  //open modal
-  const dialog = document.querySelector(`[data-role="display"]`);
-  dialog?.showModal();
-};
-
-const printOutput = (line, el) => {
-  const li = document.createElement("li");
-  li.setAttribute("data-value", line?.toUpperCase());
-  li.innerText = line;
-  el.appendChild(li);
+  const dialog = document.querySelector(`m-file`);
+  dialog.openDialog(file);
 };
