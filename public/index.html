@@ -8,21 +8,17 @@
     <link rel="stylesheet" href="style.css" />
     <script type="module" src="./index.js"></script>
     <script src="./components/grid.js"></script>
+    <script src="./components/navigate.js"></script>
+    <script src="./components/note.js"></script>
+    <script src="./components/files.js"></script>
     <title>EDI</title>
   </head>
   <body>
-    <div class="drop-zone" data-feature="drop" data-output="edi-list">
-      Drop EDI
+    <!-- <m-nav></m-nav> -->
+    <div id="app">
+      <m-file></m-file>
+      <div id="previous-files"></div>
+      <!-- <m-note></m-note> -->
     </div>
-    <div id="previous-files"></div>
-    <dialog>
-      <div data-close>X</div>
-      <article>
-        <ul id="edi-list" contenteditable></ul>
-      </article>
-      <div class="footer">
-        <input type="text" placeholder="Search..." data-search />
-      </div>
-    </dialog>
   </body>
 </html>

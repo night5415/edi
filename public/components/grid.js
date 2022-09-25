@@ -2,8 +2,6 @@ const getTemplate = (id, file, created) => {
   const template = document.createElement("template");
   template.innerHTML = `
     <style>
-        :host { }
-        ::slotted(*) { }
         .row {
           display: flex;
           border: 1px solid var(--gray);
@@ -15,6 +13,13 @@ const getTemplate = (id, file, created) => {
           border-radius: 6px;
           padding: 5px;
           box-shadow: 0 0 10px var(--black);
+          transition: all 200ms;
+        }
+        .fade {
+          height: 0;
+          padding: 0;
+          max-height: 0;
+          border: none;
         }
         .row div {
           margin: 5px 0;
@@ -30,18 +35,29 @@ const getTemplate = (id, file, created) => {
         .row div:last-child {
           border-right: none;
         }
-        .close {
-          border:none;
-          background-color:transparent;
-          color:var(--white, #000);
+        .btn {
+          cursor: pointer;
+          border-radius: 6px;
+          border: 1px solid var(--white);
+          background-color: transparent;
+          color: var(--white, #000);
+          transition: all 200ms;
+          margin: 0 3px;
+        }
+        .btn:hover{
+          box-shadow: 0px 2px 10px var(--black, #000);
+        }
+        .action {
+          display: flex
         }
     </style>
     <div data-row="${id}" class="row">
       <div>${id}</div>
       <div>${new Date(created).toLocaleDateString()}</div>
       <div>${file}</div>
-      <div>
-        <button type="button" class="close">X</button>
+      <div class="action">
+        <button type="button" class="btn edit">View</button>
+        <button type="button" class="btn close">Remove</button>
       </div>
     </div>
   `;
@@ -58,31 +74,44 @@ class EdiRow extends HTMLElement {
   static get observedAttributes() {
     return [""];
   }
-  deleteRow = function () {
-    this.classList.add("fade-out");
-    setTimeout(() => this.remove(), 30000);
+  deleteRow = function (id) {
+    const row = this._shadowRoot.querySelector(`[data-row="${id}"]`);
+    if (!row) {
+      return;
+    }
+
+    row.classList.add("fade");
+    setTimeout(() => this.remove(), 1000);
   };
 
   connectedCallback() {
     const { id, file, created } = this.attributes,
       template = getTemplate(id.value, file.value, created.value),
-      button = template.querySelector("button");
+      close = template.querySelector(".close"),
+      edit = template.querySelector(".edit");
 
-    let deleteEvent = new CustomEvent("onDelete", {
-      bubbles: true,
-      detail: { id: id.value },
-    });
+    const deleteEvent = new CustomEvent("onDelete", {
+        bubbles: true,
+        cancelable: false,
+        composed: true,
+        detail: { id: id.value },
+      }),
+      editEvent = new CustomEvent("onView", {
+        bubbles: true,
+        cancelable: false,
+        composed: true,
+        detail: { id: id.value },
+      });
 
-    let rowClickEvent = new CustomEvent("onRowClick", {
-      bubbles: true,
-      detail: { id: id.value },
-    });
+    close.addEventListener("click", (e) => this.dispatchEvent(deleteEvent));
+    edit.addEventListener("click", (e) => this.dispatchEvent(editEvent));
 
-    button.addEventListener("click", () => this.dispatchEvent(deleteEvent));
-    this.addEventListener("click", () => this.dispatchEvent(rowClickEvent));
     this._shadowRoot.appendChild(template);
   }
 
-  attributeChangedCallback(name, oldVal, newVal) {}
+  attributeChangedCallback(name, oldVal, newVal) {
+    console.dir({ name, oldVal, newVal });
+  }
 }
+
 customElements.define("edi-row", EdiRow);

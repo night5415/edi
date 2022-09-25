@@ -1,6 +1,7 @@
 import { DataBase } from "./db.js";
 const SEARCH_VALUE = "data-search",
-  container = document.getElementById("previous-files");
+  container = document.getElementById("previous-files"),
+  app = document.getElementById("app");
 
 let timeout, db;
 
@@ -8,22 +9,15 @@ export function init() {
   document.addEventListener("dragover", (event) => event.preventDefault());
   db = new DataBase("edition-1", 1);
   db.init();
-}
 
-export function attach() {
-  const elements = document.querySelectorAll(`[data-feature="drop"]`);
-
-  elements.forEach((element) => {
-    element.addEventListener("ondragover ", (event) => {
-      event.stopPropagation();
-      event.preventDefault();
-    });
-
-    element.addEventListener("drop", (event) => {
-      event.preventDefault();
-      const fileList = Array.from(event.dataTransfer.files);
-      fileList.forEach(fileReader);
-    });
+  app.addEventListener("onUserPaste", ({ detail: pasted }) =>
+    showDialog(pasted)
+  );
+  app.addEventListener("onUserDrop", ({ detail: files }) => {
+    if (!Array.isArray(files)) {
+      return;
+    }
+    files.forEach(fileReader);
   });
 }
 
@@ -75,7 +69,7 @@ export async function getData() {
     target.deleteRow(deleted);
   });
 
-  container.addEventListener("onRowClick", async (e) => {
+  container.addEventListener("onView", async (e) => {
     const { detail } = e,
       id = parseInt(detail.id);
 
@@ -115,22 +109,20 @@ const fileReader = (file) => {
   reader.onload = async ({ target }) => {
     const file = target.result;
 
-    const f = {
-      id: Date.now(),
+    const newFile = {
+      id: Math.floor(Math.random() * 1000000000),
       file: file,
       created: new Date(),
     };
 
-    await db.insert(f, "edi");
+    await db.insert(newFile, "edi");
 
     const row = document.createElement("edi-row");
 
-    row.setAttribute("id", f.id);
-    row.setAttribute("file", f.file);
-    row.setAttribute("created", f.created);
+    row.setAttribute("id", newFile.id);
+    row.setAttribute("file", newFile.file);
+    row.setAttribute("created", newFile.created);
     container.append(row);
-
-    showDialog(file);
   };
   reader.onerror = (e) => console.error(e);
   reader.readAsText(file);
@@ -145,7 +137,7 @@ const showDialog = (file) => {
   //print new file
   lines.forEach((line) => printOutput(line, output));
   //open modal
-  const [dialog] = document.getElementsByTagName("dialog");
+  const dialog = document.querySelector(`[data-role="display"]`);
   dialog?.showModal();
 };
 

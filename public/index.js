@@ -1,8 +1,7 @@
-import { attach, init, dialogSetup, getData } from "./modules/app.js";
+import { init, getData } from "./modules/app.js";
+import Router from "./modules/router.js";
 
 init();
-attach();
-dialogSetup();
-setTimeout(() => {
-  getData();
-}, 250);
+setTimeout(getData, 250);
+
+window.router = new Router();
