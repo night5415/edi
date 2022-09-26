@@ -19,3 +19,9 @@ body {
   scroll-behavior: smooth;
   color: var(--white);
 }
+
+#previous-files {
+  max-height: calc(100vh - 250px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}

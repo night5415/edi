@@ -9,7 +9,6 @@ f.innerHTML = `
   color: var(--white);
   text-align: center;
   padding: 100px 0;
-
   margin: 0 20px;
 }
 
@@ -63,7 +62,7 @@ li:hover {
   color: var(--white);
 }
 
-dialog {
+#dialog{
   position: absolute;
   overflow: hidden;
   border: solid var(--gray) 2px;
@@ -72,6 +71,17 @@ dialog {
   user-select: text;
   width: 90vw;
   max-width: 1080px;
+}
+
+#context {
+  position: absolute;
+  overflow: hidden;
+  border: none;
+  border-radius: 2px;
+  padding: 5px 15px;
+  user-select: text;
+  margin: 0;
+  cursor: pointer;
 }
 
 dialog[open] {
@@ -135,7 +145,7 @@ div[data-close]:hover {
 }
 </style>
     <div class="drop-zone" data-feature="drop" data-output="edi-list">
-      Drop EDI
+      Drop File / Or paste
     </div>
     <dialog id="dialog">
       <div data-close>X</div>
@@ -146,7 +156,7 @@ div[data-close]:hover {
         <input type="text" placeholder="Search..." data-search />
       </div>
     </dialog>
-    <dialog data-role="context">Paste</dialog>
+    <dialog id="context">Paste</dialog>
 `;
 
 class Files extends HTMLElement {
@@ -173,6 +183,10 @@ class Files extends HTMLElement {
 
   get searchBox() {
     return this._shadowRoot.querySelector("[data-search]");
+  }
+
+  get contextMenu() {
+    return this._shadowRoot.getElementById("context");
   }
 
   static get observedAttributes() {
@@ -242,12 +256,11 @@ class Files extends HTMLElement {
     const { _shadowRoot: dom } = this;
     dom.appendChild(f.content.cloneNode(true));
 
-    const dropZones = dom.querySelectorAll(`[data-feature="drop"]`),
-      context = dom.querySelector(`[data-role="context"]`);
+    const dropZones = dom.querySelectorAll(`[data-feature="drop"]`);
 
     this.dialogSetup();
 
-    context.addEventListener("click", async () => {
+    this.contextMenu.addEventListener("click", async () => {
       const userContent = await navigator.clipboard.readText();
 
       this.dispatchEvent(
@@ -258,6 +271,7 @@ class Files extends HTMLElement {
           detail: userContent,
         })
       );
+      this.contextMenu.close();
     });
 
     dropZones.forEach((element) => {
@@ -283,14 +297,12 @@ class Files extends HTMLElement {
       element.addEventListener("contextmenu", (event) => {
         const { pageX, pageY } = event;
         event.preventDefault();
-        context?.showModal();
-        context.style.top = `${pageY}px`;
-        context.style.left = `${pageX}px`;
+        this.contextMenu.showModal();
+        this.contextMenu.style.top = `${pageY}px`;
+        this.contextMenu.style.left = `${pageX}px`;
       });
     });
   }
-
-  attributeChangedCallback(name, oldVal, newVal) {}
 }
 
 customElements.define("m-file", Files);

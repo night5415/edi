@@ -5,7 +5,7 @@ const getTemplate = (id, file, created) => {
         .row {
           display: flex;
           border: 1px solid var(--gray);
-          margin: 20px;
+          margin: 20px 20px 0 20px;
           gap: 10px;
           overflow: hidden;
           background-color: var(--gray, #fff);
@@ -18,6 +18,7 @@ const getTemplate = (id, file, created) => {
         .fade {
           height: 0;
           padding: 0;
+          margin-top: 0;
           max-height: 0;
           border: none;
         }
@@ -45,8 +46,6 @@ const getTemplate = (id, file, created) => {
           margin: 0 3px;
         }
         .btn:hover{
-
-
           box-shadow: 5px 5px 5px var(--black, #000);
           transform: scale(1.05);
         }
